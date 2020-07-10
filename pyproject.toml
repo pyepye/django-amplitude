@@ -6,6 +6,7 @@ packages = [
 version = "0.1.0"
 description = "Intergration between Django and Amplitude"
 authors = ["Matt Pye <pyematt@gmail.com>"]
+readme = "README.md"
 license = "MIT"
 repository = "https://github.com/pyepye/django-amplitude"
 homepage = "https://github.com/pyepye/django-amplitude"

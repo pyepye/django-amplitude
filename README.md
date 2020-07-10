@@ -1,6 +1,6 @@
 # Django Amplitude
 
-Intergration between Django and [Amplitude.com](https://amplitude.com/) to help send events via the Amplitude HTTP API (v2)
+Intergration between Django and [Amplitude.com](https://amplitude.com/) to help send events via the [Amplitude HTTP API (v2)](https://developers.amplitude.com/docs/http-api-v2)
 
 
 ## Quick start
@@ -11,8 +11,18 @@ Intergration between Django and [Amplitude.com](https://amplitude.com/) to help 
 pip install django-amplitude
 ```
 
+Set a Amplitude API key in your Django settings:
+```python
+# Settings > Projects > <Your project> > General > API Key
+AMPLITUDE_API_KEY = '<amplitude-project-api-key>'
 
-Add `amplitude` to your Django settings:
+# You can also choose if you want to include user and group data
+# IF not set will default to False
+AMPLITUDE_INCLUDE_USER_DATA = True
+AMPLITUDE_INCLUDE_GROUP_DATA = True
+```
+
+Add `amplitude` to your `INSTALLED_APPS`:
 
 ```python
 INSTALLED_APPS =(
@@ -25,12 +35,13 @@ INSTALLED_APPS =(
 
 ## Usage
 
-If you want to send an event to Amplitude on every page view you can use the django-amplitude SendPageViewEvent middleware. This will automatically create an event base on the url name that was hit and the Django request object.
+If you want to send an event to Amplitude on every page view you can use the django-amplitude `SendPageViewEvent` middleware. This will automatically create an event base on the url name that was hit and the Django request object.
 
 ```python
 MIDDLEWARE = [
     ...
     'amplitude.middleware.SendPageViewEvent',
+    ...
 ]
 ```
 
@@ -46,12 +57,16 @@ There are also few helper functions to build different parts of the event data:
 ```python
 amplitude.session_id_from_request(request)
 amplitude.event_properties_from_request(request)
+amplitude.device_data_from_request(request)
 amplitude.user_properties_from_request(request)
 amplitude.group_from_request(request)
-amplitude.device_data_from_request(request)
 
-amplitude.location_data_from_ip_address(ip_address)  # str
+amplitude.location_data_from_ip_address(ip_address)
 ```
+
+* `user_properties_from_request` will return an empty dict is `AMPLITUDE_INCLUDE_USER_DATA` is `False`
+* `group_from_request` will return an empty dict is `AMPLITUDE_INCLUDE_GROUP_DATA` is `False`
+
 
 
 ### SendPageViewEvent - missing event data keys
