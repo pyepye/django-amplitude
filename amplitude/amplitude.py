@@ -70,10 +70,10 @@ class Amplitude():
             event_data['session_id'] = request.session.session_key
 
         event_data['event_properties'] = {
-            'url': request.path_info,
+            'url': request.path,
             'url_name': url_name,
             'method': request.method,
-            'params': dict(request.GET)
+            'params': dict(request.GET),
         }
         if request.resolver_match:
             event_data['event_properties']['kwargs'] = request.resolver_match.kwargs    # NOQA: E501
@@ -143,6 +143,9 @@ class Amplitude():
 
 
 def get_client_ip(request):
+    if not hasattr(request, 'META'):
+        return ''
+
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[-1].strip()

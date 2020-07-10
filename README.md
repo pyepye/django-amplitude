@@ -39,6 +39,4 @@ from amplitude import Amplitude
 
 amplitude = Amplitude()
 amplitude.send_events([event_data])  # https://developers.amplitude.com/docs/http-api-v2
-
-amplitude.page_view_event(request)  # If you have a Django request object
 ```
