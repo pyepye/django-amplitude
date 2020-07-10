@@ -14,7 +14,7 @@ keywords = ["amplitude", "amplitude.com", "analytics", "product analytics", "saa
 
 [tool.poetry.dependencies]
 python = "^3.6"
-django = "^2.1"
+Django = ">=2.1"
 httpx = "^0.13.2"
 user-agents = "^2.1"
 
@@ -24,6 +24,7 @@ pytest = "^5.4.2"
 pytest-cov = "^2.9.0"
 pytest-mock = "^3.1.0"
 pytest-django = "^3.9.0"
+pytest-freezegun = "^0.4.1"
 isort = {extras = ["pyproject"], version = "^4.3.21"}
 flake8 = "^3.8.2"
 tox = "^3.15.1"
