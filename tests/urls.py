@@ -7,7 +7,7 @@ def empty_view(request):
 
 
 urlpatterns = [
-    path('', empty_view, name='home'),
+    path('', empty_view, name='test_home'),
     path('test/', empty_view, name='test'),
     path('test/<test>', empty_view, name='test_variable'),
 ]

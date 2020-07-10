@@ -4,12 +4,12 @@ packages = [
     {include = "amplitude"}
 ]
 version = "0.1.0"
-description = "Django + Amplitude made easy"
+description = "Intergration between Django and Amplitude"
 authors = ["Matt Pye <pyematt@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/pyepye/django-amplitude"
 homepage = "https://github.com/pyepye/django-amplitude"
-keywords = ["amplitude", "amplitude.com", "analytics", "product analytics", "saas"]
+keywords = ["amplitude", "analytics", "product analytics", "saas"]
 
 
 [tool.poetry.dependencies]

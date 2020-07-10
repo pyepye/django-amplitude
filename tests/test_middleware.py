@@ -7,14 +7,12 @@ AMPLITUDE_URL = 'https://api.amplitude.com/2/httpapi'
 
 
 def test_send_page_view_event(mocker, client, freezer):
-    freezer.move_to('2002-01-01')  # 2002-01-01
+    freezer.move_to('2002-01-01T00:00:00')
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
-    url_name = 'home'
-    url = reverse('home')
-    event = [{
-        'device_manufacturer': None,
-        'device_model': None,
+    url_name = 'test_home'
+    url = reverse(url_name)
+    events = [{
         'event_properties': {
             'method': 'GET',
             'params': {},
@@ -24,43 +22,48 @@ def test_send_page_view_event(mocker, client, freezer):
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
-        'os_version': '',
         'platform': 'Other',
-        'session_id': None,
-        'time': 1009843200.0,
-        'user_id': None
+        'session_id': 1009843200000,
+        'time': 1009843200000,
     }]
 
     kwargs = {
         'url': AMPLITUDE_URL,
         'method': 'POST',
         'json': {
-            'event': event,
+            'events': events,
             'api_key': settings.AMPLITUDE_API_KEY,
         }
     }
 
-    client.get(reverse('home'))
+    client.get(url)
     request.assert_called_once_with(**kwargs)
 
 
 def test_send_page_view_event_logged_in_user(
     mocker, client, freezer, django_user_model
 ):
-    freezer.move_to('2002-01-01')
+    freezer.move_to('2002-01-01T00:00:00')
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
     username = 'user'
+    email = 'test@example.com'
     password = 'pass'
-    django_user_model.objects.create_user(username=username, password=password)
+    first_name = 'Test'
+    last_name = 'User'
+    django_user_model.objects.create_user(
+        username=username,
+        password=password,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+    )
     client.login(username=username, password=password)
 
-    url_name = 'home'
-    url = reverse('home')
+    url_name = 'test_home'
+    url = reverse(url_name)
     user_id = django_user_model.objects.get(username=username).pk
-    event = [{
-        'device_manufacturer': None,
-        'device_model': None,
+    events = [{
         'event_properties': {
             'method': 'GET',
             'params': {},
@@ -70,18 +73,26 @@ def test_send_page_view_event_logged_in_user(
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
-        'os_version': '',
         'platform': 'Other',
-        'session_id': client.session.session_key,
-        'time': 1009843200.0,  # 2002-01-01
-        'user_id': user_id
+        'session_id': 1009843200000,
+        'time': 1009843200000,  # 2002-01-01
+        'user_id': f'{user_id:05}',
+        'user_properties': {
+            'date_joined': '2002-01-01T00:00:00',
+            'email': email,
+            'full_name': f'{first_name} {last_name}',
+            'is_staff': False,
+            'is_superuser': False,
+            'last_login': '2002-01-01T00:00:00',
+            'username': username
+        },
     }]
 
     kwargs = {
         'url': AMPLITUDE_URL,
         'method': 'POST',
         'json': {
-            'event': event,
+            'events': events,
             'api_key': settings.AMPLITUDE_API_KEY,
         }
     }
@@ -91,16 +102,9 @@ def test_send_page_view_event_logged_in_user(
 
 
 def test_send_page_view_event_with_url_params(mocker, client, freezer):
-    freezer.move_to('2002-01-01')
+    freezer.move_to('2002-01-01T00:00:00')
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
-    url_name = 'home'
-
-    params_url = {
-        'pname': 'This has a space',
-        'pname2': 'This+has+a+plus',
-    }
-
     a_value_one = 'avalue space'
     a_value_two = 'avalue+plus'
     b_value_one = 'bvalue'
@@ -114,13 +118,12 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
         'b': [b_value_one],
     }
 
+    url_name = 'test_home'
+    url = reverse(url_name)
     query = urlencode(params_url)
-    url = reverse('home')
     params_url = f'{url}?{query}'
 
-    event = [{
-        'device_manufacturer': None,
-        'device_model': None,
+    events = [{
         'event_properties': {
             'method': 'GET',
             'params': params,
@@ -130,18 +133,16 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
-        'os_version': '',
         'platform': 'Other',
-        'session_id': None,
-        'time': 1009843200.0,  # 2002-01-01
-        'user_id': None
+        'session_id': 1009843200000,
+        'time': 1009843200000,  # 2002-01-01
     }]
 
     kwargs = {
         'url': AMPLITUDE_URL,
         'method': 'POST',
         'json': {
-            'event': event,
+            'events': events,
             'api_key': settings.AMPLITUDE_API_KEY,
         }
     }

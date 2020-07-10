@@ -26,4 +26,6 @@ MIDDLEWARE = (
     'amplitude.middleware.SendPageViewEvent',
 )
 
-AMPLITUDE_API_KEY = '123'
+AMPLITUDE_API_KEY = 'abc123'
+AMPLITUDE_INCLUDE_USER_DATA = True
+AMPLITUDE_INCLUDE_GROUP_DATA = True

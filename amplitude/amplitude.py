@@ -1,18 +1,14 @@
 import logging
 import time
-from typing import Any, Dict, List
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Union
 
 import httpx
 from django.conf import settings
 from django.urls import resolve
 
-try:
-    from user_agents import parse as user_agent_parse  # type: ignore
-except ImportError:  # pragma: no cover
-    CAN_USER_AGENT = False
-else:
-    KNOWN_USER_AGENTS: Dict[str, str] = {}
-    CAN_USER_AGENT = True
+from . import settings as app_settings
+from .utils import get_client_ip, get_user_agent
 
 try:
     from django.contrib.gis.geoip2 import GeoIP2  # type: ignore
@@ -34,102 +30,31 @@ class Amplitude():
     def __init__(
         self,
         api_key: str = None,
-        include_user_data: bool = False,
-        include_group_data: bool = False,
+        include_user_data: bool = None,
+        include_group_data: bool = None,
     ):
         if not api_key:
-            api_key = settings.AMPLITUDE_API_KEY
+            api_key = app_settings.AMPLITUDE_API_KEY
+        if include_user_data is None:
+            include_user_data = app_settings.AMPLITUDE_INCLUDE_USER_DATA
+        if include_group_data is None:
+            include_group_data = app_settings.AMPLITUDE_INCLUDE_GROUP_DATA
 
         self.url = 'https://api.amplitude.com/2/httpapi'
         self.api_key = api_key
         self.include_user_data = include_user_data
         self.include_group_data = include_group_data
 
-    def page_view_event(self, request):
-        """
-        Send an event based on a Django request
-        """
-        url_name = resolve(request.path_info).url_name
-        event_data: Dict[str, Any] = {
-            'user_id': request.user.id,
-            'event_type': f'Page view {url_name}',
-            "time": time.time(),
-            # 'app_version': '',
-            # 'carrier': '',
-            # 'price': '',
-            # 'quantity': '',
-            # 'revenue': '',
-            # 'productId': '',
-            # 'revenueType': '',
-            'ip': get_client_ip(request),
-            # 'event_id': '',
-            # 'insert_id': '',
-        }
-
-        if request.session:
-            event_data['session_id'] = request.session.session_key
-
-        event_data['event_properties'] = {
-            'url': request.path,
-            'url_name': url_name,
-            'method': request.method,
-            'params': dict(request.GET),
-        }
-        if request.resolver_match:
-            event_data['event_properties']['kwargs'] = request.resolver_match.kwargs    # NOQA: E501
-
-        LANGUAGE_CODE = getattr(request, "LANGUAGE_CODE", '')
-        if LANGUAGE_CODE:
-            event_data['language'] = LANGUAGE_CODE
-
-        if event_data['ip'] and CAN_GEOIP:
-            ip_address = event_data['ip']
-            # pip install geoip2
-            # https://pypi.org/project/geoip2/
-            # from django.contrib.gis.geoip2 import GeoIP2
-            g = GeoIP2()
-            location = g.city(ip_address)
-            event_data['country'] = location['country_name']
-            event_data['city'] = location['city']
-            event_data['region'] = g.region(ip_address)
-            lat_lon = g.lat_lon(ip_address)
-            event_data['location_lat'] = lat_lon[0]
-            event_data['location_lng'] = lat_lon[1]
-
-        if CAN_USER_AGENT:
-            user_agent = get_user_agent(request)
-            if user_agent:
-                event_data['os_name'] = user_agent.os.family
-                event_data['os_version'] = user_agent.os.version_string
-                event_data['platform'] = user_agent.device.family
-                # event_data['device_brand']
-                event_data['device_manufacturer'] = user_agent.device.brand
-                event_data['device_model'] = user_agent.device.model
-
-        if self.include_group_data and request.user.is_authenticated:
-            event_data['user_properties'] = {
-                'username': request.user.get_username(),
-                'email': request.user.username,
-                'full_name': request.user.get_full_name(),
-                'is_staff': request.user.is_staff,
-                'is_superuser': request.user.is_superuser,
-                'last_login': request.user.last_login.isoformat(),
-                'date_joined': request.user.date_joined.isoformat(),
-            }
-        if self.include_group_data and request.user.is_authenticated:
-            event_data['groups'] = list(request.user.groups.all().values_list('name', flat=True))  # NOQA
-
-        self.send_events(events=[event_data])
-
     def send_events(self, events: List[Dict[str, Any]]) -> dict:
         """
         https://developers.amplitude.com/docs/http-api-v2
         """
+        events = [self.clean_event(event) for event in events]
         kwargs: Dict[str, Any] = {
             'url': self.url,
             'method': 'POST',
             'json': {
-                'event': events,
+                'events': events,
                 'api_key': self.api_key
             }
         }
@@ -141,31 +66,128 @@ class Amplitude():
 
         return response.json()
 
+    def clean_event(self, event: dict) -> dict:
+        for key, value in event.items():
+            if isinstance(value, dict):
+                event[key] = {k: v for k, v in value.items() if v is not [None, [], '', {}]}  # NOQA: E501
 
-def get_client_ip(request) -> str:
-    if not hasattr(request, 'META'):
-        return ''
+        event = {k: v for k, v in event.items() if v not in [None, [], '', {}]}
 
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[-1].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        return event
 
+    def page_view_event(self, request):
+        """
+        Send an event based on a Django request
+        """
+        url_name = resolve(request.path_info).url_name
 
-def get_user_agent(request) -> str:
-    if not hasattr(request, 'META'):
-        return ''
+        event: Dict[str, Any] = {
+            'event_type': f'Page view {url_name}',
+            'time': int(round(time.time() * 1000)),
+            'ip': get_client_ip(request),
+            'language': getattr(request, 'LANGUAGE_CODE', ''),
+            # 'app_version': '',
+            # 'device_id': '',
+            # 'carrier': '',
+            # 'dma': 'San Francisco-Oakland-San Jose, CA',
+            # 'price': 4.99,
+            # 'quantity': 3,
+            # 'revenue': -1.99,
+            # 'productId': 'Google Pay Store Product Id',
+            # 'revenueType': 'Refund',
+            # 'idfa': '',
+            # 'idfv': '',
+            # 'adid': '',
+            # 'android_id': '',
+            # 'event_id': 23,
+            # 'insert_id': '',
+        }
+        if request.user.is_authenticated:
+            event['user_id'] = f'{request.user.id:05}'
+        event['session_id'] = self.session_id_from_request(request)
+        event['event_properties'] = self.event_properties_from_request(request)
+        event['user_properties'] = self.user_properties_from_request(request)
+        event['groups'] = self.group_from_request(request)
+        device_data = self.device_data_from_request(request)
+        event.update(device_data)
+        location_data = self.location_data_from_ip_address(event['ip'])
+        event.update(location_data)
 
-    http_user_agent = request.META.get('HTTP_USER_AGENT', '')
-    if http_user_agent:
-        return ''
+        self.send_events(events=[event])
 
-    if http_user_agent in KNOWN_USER_AGENTS:
-        return KNOWN_USER_AGENTS[http_user_agent]
+    def session_id_from_request(self, request) -> Union[int, None]:
+        if not request.session:
+            return None
 
-    user_agent = user_agent_parse(http_user_agent)
-    KNOWN_USER_AGENTS[http_user_agent] = user_agent
+        session_end = request.session.get_expiry_date()
+        session_start = session_end - timedelta(seconds=settings.SESSION_COOKIE_AGE)  # NOQA: E501
+        epoch = datetime.utcfromtimestamp(0)
+        start_epoch = (session_start - epoch).total_seconds() * 1000.0
+        return int(start_epoch)
 
-    return user_agent
+    def event_properties_from_request(self, request) -> dict:
+        url_name = resolve(request.path_info).url_name
+        event_properties = {
+            'url': request.path,
+            'url_name': url_name,
+            'method': request.method,
+            'params': dict(request.GET),
+        }
+        if request.resolver_match:
+            event_properties['kwargs'] = request.resolver_match.kwargs
+        return event_properties
+
+    def user_properties_from_request(self, request) -> dict:
+        if not self.include_user_data or not request.user.is_authenticated:
+            return {}
+
+        return {
+            'username': request.user.get_username(),
+            'email': request.user.email,
+            'full_name': request.user.get_full_name(),
+            'is_staff': request.user.is_staff,
+            'is_superuser': request.user.is_superuser,
+            'last_login': request.user.last_login.isoformat(),
+            'date_joined': request.user.date_joined.isoformat(),
+        }
+
+    def group_from_request(self, request) -> list:
+        if not self.include_group_data or not request.user.is_authenticated:
+            return []
+
+        groups = request.user.groups.all().values_list('name', flat=True)
+        return list(groups)
+
+    def location_data_from_ip_address(self, ip_address: str) -> dict:
+        location_data: dict = {}
+
+        if not ip_address or not CAN_GEOIP:
+            return location_data
+
+        # pip install geoip2
+        # https://pypi.org/project/geoip2/
+        # from django.contrib.gis.geoip2 import GeoIP2
+        g = GeoIP2()
+        location = g.city(ip_address)
+        location_data['country'] = location['country_name']
+        location_data['city'] = location['city']
+        location_data['region'] = g.region(ip_address)
+        lat_lon = g.lat_lon(ip_address)
+        location_data['location_lat'] = lat_lon[0]
+        location_data['location_lng'] = lat_lon[1]
+        return location_data
+
+    def device_data_from_request(self, request) -> dict:
+        device_data: dict = {}
+
+        user_agent = get_user_agent(request)
+        if not user_agent:
+            return device_data
+
+        device_data['os_name'] = user_agent.os.family
+        device_data['os_version'] = user_agent.os.version_string
+        device_data['platform'] = user_agent.device.family
+        # device_data['device_brand']
+        device_data['device_manufacturer'] = user_agent.device.brand
+        device_data['device_model'] = user_agent.device.model
+        return device_data
