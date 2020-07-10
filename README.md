@@ -65,8 +65,8 @@ amplitude.group_from_request(request)
 amplitude.location_data_from_ip_address(ip_address)
 ```
 
-* `user_properties_from_request` will return an empty dict is `AMPLITUDE_INCLUDE_USER_DATA` is `False`
-* `group_from_request` will return an empty dict is `AMPLITUDE_INCLUDE_GROUP_DATA` is `False`
+* `user_properties_from_request` will return an empty dict if `AMPLITUDE_INCLUDE_USER_DATA` is `False`
+* `group_from_request` will return an empty dict if `AMPLITUDE_INCLUDE_GROUP_DATA` is `False`
 
 
 
