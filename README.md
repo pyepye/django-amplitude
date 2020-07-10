@@ -1,6 +1,6 @@
 # Django Amplitude
 
-Intergration between Django and [Amplitude.com](https://amplitude.com/) to help send events via the [Amplitude HTTP API (v2)](https://developers.amplitude.com/docs/http-api-v2)
+Integration between Django and [Amplitude.com](https://amplitude.com/) to help send events via the [Amplitude HTTP API (v2)](https://developers.amplitude.com/docs/http-api-v2)
 
 
 ## Quick start
@@ -35,7 +35,8 @@ INSTALLED_APPS =(
 
 ## Usage
 
-If you want to send an event to Amplitude on every page view you can use the django-amplitude `SendPageViewEvent` middleware. This will automatically create an event base on the url name that was hit and the Django request object.
+If you want to send an event to Amplitude on every page view you can use the django-amplitude `SendPageViewEvent` middleware to your `MIDDLEWARE` in your Django settings.
+This will automatically create an event base on the url name that was hit and the Django request object.
 
 ```python
 MIDDLEWARE = [
