@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -93,7 +95,6 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
     url_name = 'home'
-    import urllib
 
     params_url = {
         'pname': 'This has a space',
@@ -113,7 +114,7 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
         'b': [b_value_one],
     }
 
-    query = urllib.parse.urlencode(params_url)
+    query = urlencode(params_url)
     url = reverse('home')
     params_url = f'{url}?{query}'
 

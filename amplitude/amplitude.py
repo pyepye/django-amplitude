@@ -1,21 +1,21 @@
 import logging
 import time
-from typing import List
+from typing import Any, Dict, List
 
 import httpx
 from django.conf import settings
 from django.urls import resolve
 
 try:
-    from user_agents import parse as user_agent_parse
+    from user_agents import parse as user_agent_parse  # type: ignore
 except ImportError:  # pragma: no cover
     CAN_USER_AGENT = False
 else:
-    KNOWN_USER_AGENTS = {}
+    KNOWN_USER_AGENTS: Dict[str, str] = {}
     CAN_USER_AGENT = True
 
 try:
-    from django.contrib.gis.geoip2 import GeoIP2
+    from django.contrib.gis.geoip2 import GeoIP2  # type: ignore
 except ImportError:
     CAN_GEOIP = False
 else:  # pragma: no cover
@@ -50,7 +50,7 @@ class Amplitude():
         Send an event based on a Django request
         """
         url_name = resolve(request.path_info).url_name
-        event_data = {
+        event_data: Dict[str, Any] = {
             'user_id': request.user.id,
             'event_type': f'Page view {url_name}',
             "time": time.time(),
@@ -121,11 +121,11 @@ class Amplitude():
 
         self.send_events(events=[event_data])
 
-    def send_events(self, events: List[dict]) -> dict:
+    def send_events(self, events: List[Dict[str, Any]]) -> dict:
         """
         https://developers.amplitude.com/docs/http-api-v2
         """
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             'url': self.url,
             'method': 'POST',
             'json': {
@@ -142,7 +142,7 @@ class Amplitude():
         return response.json()
 
 
-def get_client_ip(request):
+def get_client_ip(request) -> str:
     if not hasattr(request, 'META'):
         return ''
 
@@ -154,7 +154,7 @@ def get_client_ip(request):
     return ip
 
 
-def get_user_agent(request):
+def get_user_agent(request) -> str:
     if not hasattr(request, 'META'):
         return ''
 
