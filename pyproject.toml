@@ -3,7 +3,7 @@ name = "django-amplitude"
 packages = [
     {include = "amplitude"}
 ]
-version = "0.2.1"
+version = "0.3.0"
 description = "Integration between Django and Amplitude"
 authors = ["Matt Pye <pyematt@gmail.com>"]
 readme = "README.md"
@@ -38,7 +38,6 @@ multi_line_output = 5
 known_third_party = "pytest"
 known_first_party = "amplitude"
 skip_glob = "__pycache__/*,venv/*,.venv/*,.tox/*,.mypy_cache"
-not_skip = "__init__.py"
 
 
 [build-system]
