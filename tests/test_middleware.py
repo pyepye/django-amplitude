@@ -26,7 +26,7 @@ def test_send_page_view_event(mocker, client, freezer):
             'url_name': url_name
         },
         'device_id': fakeuuid,
-        'event_type': f'Page view {url_name}',
+        'event_type': 'Page view',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',
@@ -49,7 +49,7 @@ def test_send_page_view_event(mocker, client, freezer):
     client.get(url2)
     events[0]['event_properties']['url'] = url2
     events[0]['event_properties']['url_name'] = url_name2
-    events[0]['event_type'] = f'Page view {url_name2}'
+    events[0]['event_type'] = 'Page view'
     events[0]['time'] = 1009843201000
     kwargs['json']['events'] = events
     request.assert_any_call(**kwargs)
@@ -86,7 +86,7 @@ def test_send_page_view_event_logged_in_user(
             'url_name': url_name
         },
         'device_id': mocker.ANY,
-        'event_type': f'Page view {url_name}',
+        'event_type': 'Page view',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',
@@ -146,7 +146,7 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
             'url_name': url_name
         },
         'device_id': mocker.ANY,
-        'event_type': f'Page view {url_name}',
+        'event_type': 'Page view',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',
@@ -191,7 +191,7 @@ def test_send_page_view_event_no_auth_middleware(
             'url_name': url_name
         },
         'device_id': mocker.ANY,
-        'event_type': f'Page view {url_name}',
+        'event_type': 'Page view',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',

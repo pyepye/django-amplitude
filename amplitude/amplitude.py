@@ -77,11 +77,9 @@ class Amplitude():
         """
         Send an event based on a Django request
         """
-        url_name = resolve(request.path_info).url_name
-
         event: Dict[str, Any] = {
             'device_id': request.session.get('amplitude_device_id'),
-            'event_type': f'Page view {url_name}',
+            'event_type': f'Page view',
             'time': int(round(time.time() * 1000)),
             'ip': get_client_ip(request),
             'language': getattr(request, 'LANGUAGE_CODE', ''),
