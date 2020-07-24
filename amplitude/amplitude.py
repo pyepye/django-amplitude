@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Union
 
 import httpx
-from django.conf import settings
 from django.urls import resolve
 
 from . import settings as app_settings
@@ -34,11 +33,11 @@ class Amplitude():
         include_group_data: bool = None,
     ):
         if not api_key:
-            api_key = app_settings.AMPLITUDE_API_KEY
+            api_key = app_settings.API_KEY
         if include_user_data is None:
-            include_user_data = app_settings.AMPLITUDE_INCLUDE_USER_DATA
+            include_user_data = app_settings.INCLUDE_USER_DATA
         if include_group_data is None:
-            include_group_data = app_settings.AMPLITUDE_INCLUDE_GROUP_DATA
+            include_group_data = app_settings.INCLUDE_GROUP_DATA
 
         self.url = 'https://api.amplitude.com/2/httpapi'
         self.api_key = api_key
@@ -82,6 +81,7 @@ class Amplitude():
         url_name = resolve(request.path_info).url_name
 
         event: Dict[str, Any] = {
+            'device_id': request.session['amplitude_device_id'],
             'event_type': f'Page view {url_name}',
             'time': int(round(time.time() * 1000)),
             'ip': get_client_ip(request),
@@ -104,10 +104,10 @@ class Amplitude():
         }
         try:
             event['user_id'] = f'{request.user.id:05}'
-        except TypeError:
-            event['user_id'] = self.session_id_from_request(request)
+        except (AttributeError, TypeError):
+            pass
 
-        event['session_id'] = self.session_id_from_request(request)
+        event['session_id'] = request.session['amplitude_session_id']
         event['event_properties'] = self.event_properties_from_request(request)
         event['user_properties'] = self.user_properties_from_request(request)
         event['groups'] = self.group_from_request(request)
@@ -115,16 +115,7 @@ class Amplitude():
         event.update(device_data)
         location_data = self.location_data_from_ip_address(event['ip'])
         event.update(location_data)
-
         self.send_events(events=[event])
-
-    def session_id_from_request(self, request) -> Union[int, None]:
-        session_end = request.session.get_expiry_date()
-        session_cookie_age = request.session.get_session_cookie_age()
-        session_start = session_end - timedelta(seconds=session_cookie_age)
-        epoch = datetime.utcfromtimestamp(0)
-        start_epoch = (session_start - epoch).total_seconds() * 1000.0
-        return int(start_epoch)
 
     def event_properties_from_request(self, request) -> dict:
         url_name = resolve(request.path_info).url_name
@@ -139,6 +130,11 @@ class Amplitude():
         return event_properties
 
     def user_properties_from_request(self, request) -> dict:
+        try:
+            request.user.is_authenticated
+        except AttributeError:
+            return {}
+
         if not self.include_user_data or not request.user.is_authenticated:
             return {}
 
@@ -153,6 +149,11 @@ class Amplitude():
         }
 
     def group_from_request(self, request) -> list:
+        try:
+            request.user.is_authenticated
+        except AttributeError:
+            return {}
+
         if not self.include_group_data or not request.user.is_authenticated:
             return []
 

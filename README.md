@@ -11,25 +11,39 @@ Integration between Django and [Amplitude.com](https://amplitude.com/) to help s
 pip install django-amplitude
 ```
 
-Set a Amplitude API key in your Django settings:
+Add `amplitude` to your `INSTALLED_APPS`:
+
+```python
+INSTALLED_APPS =(
+    ...
+    'amplitude',
+    ...
+)
+```
+
+Set your Amplitude API key in your `settings.py`:
 ```python
 # Settings > Projects > <Your project> > General > API Key
 AMPLITUDE_API_KEY = '<amplitude-project-api-key>'
 
 # You can also choose if you want to include user and group data
 # IF not set will default to False
-AMPLITUDE_INCLUDE_USER_DATA = True
-AMPLITUDE_INCLUDE_GROUP_DATA = True
+AMPLITUDE_INCLUDE_USER_DATA = False
+AMPLITUDE_INCLUDE_GROUP_DATA = False
 ```
 
-Add `amplitude` to your `INSTALLED_APPS`:
-
+If they are not already, the Django `sessions` app must be in `INSTALLED_APPS` and `SessionMiddleware` in `MIDDLEWARE`:
 ```python
-INSTALLED_APPS =(
+INSTALLED_APPS = [
     ...
-    "amplitude",
+    'django.contrib.sessions',
     ...
-)
+]
+MIDDLEWARE = [
+    ...
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    ...
+]
 ```
 
 
@@ -38,13 +52,17 @@ INSTALLED_APPS =(
 If you want to send an event to Amplitude on every page view you can use the django-amplitude `SendPageViewEvent` middleware to your `MIDDLEWARE` in your Django settings.
 This will automatically create an event base on the url name that was hit and the Django request object.
 
+It must be placed after `django.contrib.sessions.middleware.SessionMiddleware`. If you have`django.contrib.auth.middleware.AuthenticationMiddleware` it must also be placed after it.
+
 ```python
 MIDDLEWARE = [
     ...
     'amplitude.middleware.SendPageViewEvent',
-    ...
 ]
 ```
+
+The `SendPageViewEvent` middleware also sets 2 cookies to help track users -  `amplitude_device_id` and `amplitude_session_id`.
+
 
 If you want to send your own events:
 ```python
@@ -56,7 +74,6 @@ amplitude.send_events([event_data])  # https://developers.amplitude.com/docs/htt
 
 There are also few helper functions to build different parts of the event data:
 ```python
-amplitude.session_id_from_request(request)
 amplitude.event_properties_from_request(request)
 amplitude.device_data_from_request(request)
 amplitude.user_properties_from_request(request)
@@ -76,7 +93,6 @@ The `SendPageViewEvent` middleware currently does not record the following keys 
 
 * event_id
 * app_version
-* device_id
 * carrier
 * price
 * quantity

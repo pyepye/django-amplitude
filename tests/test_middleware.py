@@ -1,3 +1,4 @@
+from importlib import reload
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -10,8 +11,13 @@ def test_send_page_view_event(mocker, client, freezer):
     freezer.move_to('2002-01-01T00:00:00')
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
+    uid = mocker.patch('amplitude.middleware.uuid4')
+    fakeuuid = '1234abcd'
+    uid.return_value = fakeuuid
+
     url_name = 'test_home'
     url = reverse(url_name)
+    client.get(url)
     events = [{
         'event_properties': {
             'method': 'GET',
@@ -19,13 +25,13 @@ def test_send_page_view_event(mocker, client, freezer):
             'url': url,
             'url_name': url_name
         },
+        'device_id': fakeuuid,
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',
         'session_id': 1009843200000,
         'time': 1009843200000,
-        'user_id': 1009843200000,  # 2002-01-01
     }]
 
     kwargs = {
@@ -36,9 +42,17 @@ def test_send_page_view_event(mocker, client, freezer):
             'api_key': settings.AMPLITUDE_API_KEY,
         }
     }
-
-    client.get(url)
     request.assert_called_once_with(**kwargs)
+    freezer.move_to('2002-01-01T00:00:01')
+    url_name2 = 'test'
+    url2 = reverse(url_name2)
+    client.get(url2)
+    events[0]['event_properties']['url'] = url2
+    events[0]['event_properties']['url_name'] = url_name2
+    events[0]['event_type'] = f'Page view {url_name2}'
+    events[0]['time'] = 1009843201000
+    kwargs['json']['events'] = events
+    request.assert_any_call(**kwargs)
 
 
 def test_send_page_view_event_logged_in_user(
@@ -71,6 +85,7 @@ def test_send_page_view_event_logged_in_user(
             'url': url,
             'url_name': url_name
         },
+        'device_id': mocker.ANY,
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
@@ -97,7 +112,6 @@ def test_send_page_view_event_logged_in_user(
             'api_key': settings.AMPLITUDE_API_KEY,
         }
     }
-
     client.get(url)
     request.assert_called_once_with(**kwargs)
 
@@ -131,13 +145,13 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
             'url': url,
             'url_name': url_name
         },
+        'device_id': mocker.ANY,
         'event_type': f'Page view {url_name}',
         'ip': '127.0.0.1',
         'os_name': 'Other',
         'platform': 'Other',
         'session_id': 1009843200000,
         'time': 1009843200000,  # 2002-01-01
-        'user_id': 1009843200000,  # 2002-01-01
     }]
 
     kwargs = {
@@ -150,4 +164,49 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
     }
 
     client.get(params_url)
+    request.assert_called_once_with(**kwargs)
+
+
+def test_send_page_view_event_no_auth_middleware(
+    mocker, settings, client, freezer
+):
+    settings.INSTALLED_APPS.remove('django.contrib.auth')
+    settings.MIDDLEWARE.remove(
+        'django.contrib.auth.middleware.AuthenticationMiddleware')
+    settings.AMPLITUDE_INCLUDE_USER_DATA = False
+    settings.AMPLITUDE_INCLUDE_GROUP_DATA = False
+    from amplitude import settings as appsettings
+    reload(appsettings)
+
+    freezer.move_to('2002-01-01T00:00:00')
+
+    request = mocker.patch('amplitude.amplitude.httpx.request')
+    url_name = 'test_home'
+    url = reverse(url_name)
+    events = [{
+        'event_properties': {
+            'method': 'GET',
+            'params': {},
+            'url': url,
+            'url_name': url_name
+        },
+        'device_id': mocker.ANY,
+        'event_type': f'Page view {url_name}',
+        'ip': '127.0.0.1',
+        'os_name': 'Other',
+        'platform': 'Other',
+        'session_id': 1009843200000,
+        'time': 1009843200000,    # 2002-01-01
+    }]
+
+    kwargs = {
+        'url': AMPLITUDE_URL,
+        'method': 'POST',
+        'json': {
+            'events': events,
+            'api_key': settings.AMPLITUDE_API_KEY,
+        }
+    }
+
+    client.get(url)
     request.assert_called_once_with(**kwargs)
