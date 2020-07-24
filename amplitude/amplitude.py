@@ -81,7 +81,7 @@ class Amplitude():
         url_name = resolve(request.path_info).url_name
 
         event: Dict[str, Any] = {
-            'device_id': request.session['amplitude_device_id'],
+            'device_id': request.session.get('amplitude_device_id'),
             'event_type': f'Page view {url_name}',
             'time': int(round(time.time() * 1000)),
             'ip': get_client_ip(request),
@@ -107,7 +107,7 @@ class Amplitude():
         except (AttributeError, TypeError):
             pass
 
-        event['session_id'] = request.session['amplitude_session_id']
+        event['session_id'] = request.session.get('amplitude_session_id')
         event['event_properties'] = self.event_properties_from_request(request)
         event['user_properties'] = self.user_properties_from_request(request)
         event['groups'] = self.group_from_request(request)
