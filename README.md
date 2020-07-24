@@ -52,10 +52,12 @@ MIDDLEWARE = [
 If you want to send an event to Amplitude on every page view you can use the django-amplitude `SendPageViewEvent` middleware to your `MIDDLEWARE` in your Django settings.
 This will automatically create an event base on the url name that was hit and the Django request object.
 
-It must be placed after `django.contrib.sessions.middleware.SessionMiddleware`. If you have`django.contrib.auth.middleware.AuthenticationMiddleware` it must also be placed after it.
+It must be placed after `django.contrib.sessions.middleware.SessionMiddleware`. If you have `django.contrib.auth.middleware.AuthenticationMiddleware` it must also be placed after it.
 
 ```python
 MIDDLEWARE = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     ...
     'amplitude.middleware.SendPageViewEvent',
 ]
