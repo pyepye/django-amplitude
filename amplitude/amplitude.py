@@ -1,7 +1,6 @@
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 import httpx
 from django.urls import resolve
@@ -152,7 +151,7 @@ class Amplitude():
         try:
             request.user.is_authenticated
         except AttributeError:
-            return {}
+            return []
 
         if not self.include_group_data or not request.user.is_authenticated:
             return []
