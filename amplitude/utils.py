@@ -26,13 +26,10 @@ def get_user_agent(request):
         return ''
 
     http_user_agent = request.META.get('HTTP_USER_AGENT', '')
-    if http_user_agent:
-        return ''
-
     if http_user_agent in KNOWN_USER_AGENTS:
         return KNOWN_USER_AGENTS[http_user_agent]
 
-    if not USER_AGENT_AVAILABLE:
+    if not USER_AGENT_AVAILABLE:  # pragma: no cover
         return ''
 
     user_agent = user_agent_parse(http_user_agent)
