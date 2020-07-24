@@ -102,8 +102,11 @@ class Amplitude():
             # 'event_id': 23,
             # 'insert_id': '',
         }
-        if request.user.is_authenticated:
+        try:
             event['user_id'] = f'{request.user.id:05}'
+        except TypeError:
+            event['user_id'] = self.session_id_from_request(request)
+
         event['session_id'] = self.session_id_from_request(request)
         event['event_properties'] = self.event_properties_from_request(request)
         event['user_properties'] = self.user_properties_from_request(request)
@@ -116,11 +119,9 @@ class Amplitude():
         self.send_events(events=[event])
 
     def session_id_from_request(self, request) -> Union[int, None]:
-        if not request.session:
-            return None
-
         session_end = request.session.get_expiry_date()
-        session_start = session_end - timedelta(seconds=settings.SESSION_COOKIE_AGE)  # NOQA: E501
+        session_cookie_age = request.session.get_session_cookie_age()
+        session_start = session_end - timedelta(seconds=session_cookie_age)
         epoch = datetime.utcfromtimestamp(0)
         start_epoch = (session_start - epoch).total_seconds() * 1000.0
         return int(start_epoch)

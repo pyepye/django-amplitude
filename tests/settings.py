@@ -20,11 +20,11 @@ INSTALLED_APPS = [
     'tests',
 ]
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'amplitude.middleware.SendPageViewEvent',
-)
+]
 
 AMPLITUDE_API_KEY = 'abc123'
 AMPLITUDE_INCLUDE_USER_DATA = True

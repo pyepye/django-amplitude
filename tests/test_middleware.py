@@ -25,6 +25,7 @@ def test_send_page_view_event(mocker, client, freezer):
         'platform': 'Other',
         'session_id': 1009843200000,
         'time': 1009843200000,
+        'user_id': 1009843200000,  # 2002-01-01
     }]
 
     kwargs = {
@@ -136,6 +137,7 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
         'platform': 'Other',
         'session_id': 1009843200000,
         'time': 1009843200000,  # 2002-01-01
+        'user_id': 1009843200000,  # 2002-01-01
     }]
 
     kwargs = {
