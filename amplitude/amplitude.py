@@ -3,6 +3,7 @@ import time
 from typing import Any, Dict, List
 
 import httpx
+from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from django.urls import resolve
 
@@ -15,7 +16,6 @@ except ImportError:
     CAN_GEOIP = False
 else:  # pragma: no cover
     CAN_GEOIP = True
-
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class Amplitude():
             'insert_id': kwargs.get('insert_id'),
         }
         try:
-            event['user_id'] = f'{request.user.id:05}'
+            event['user_id'] = f'{request.user.pk:05}'
         except (AttributeError, TypeError):
             pass
 
@@ -137,14 +137,17 @@ class Amplitude():
         if not self.include_user_data or not request.user.is_authenticated:
             return {}
 
+        User = get_user_model()
+        user = User.objects.get(pk=request.user.pk)
+
         return {
-            'username': request.user.get_username(),
-            'email': request.user.email,
-            'full_name': request.user.get_full_name(),
-            'is_staff': request.user.is_staff,
-            'is_superuser': request.user.is_superuser,
-            'last_login': request.user.last_login.isoformat(),
-            'date_joined': request.user.date_joined.isoformat(),
+            'username': user.get_username(),
+            'email': user.email,
+            'full_name': user.get_full_name(),
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'last_login': user.last_login.isoformat(),
+            'date_joined': user.date_joined.isoformat(),
         }
 
     def group_from_request(self, request: HttpRequest) -> list:
@@ -156,7 +159,9 @@ class Amplitude():
         if not self.include_group_data or not request.user.is_authenticated:
             return []
 
-        groups = request.user.groups.all().values_list('name', flat=True)
+        User = get_user_model()
+        user = User.objects.get(pk=request.user.pk)
+        groups = user.groups.all().values_list('name', flat=True)
         return list(groups)
 
     def location_data_from_ip_address(self, ip_address: str) -> dict:
