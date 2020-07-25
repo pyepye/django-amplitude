@@ -3,7 +3,6 @@ from importlib import reload
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-
 """
 ToDo: The pytest-django settings fixture appears to be module scope no function
 """

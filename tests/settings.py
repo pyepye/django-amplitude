@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'amplitude.middleware.SessionInfo',
     'amplitude.middleware.SendPageViewEvent',
 ]
 

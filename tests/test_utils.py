@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+
 from amplitude.utils import get_client_ip, get_user_agent
 
 

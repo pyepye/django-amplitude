@@ -3,6 +3,7 @@ import time
 from typing import Any, Dict, List
 
 import httpx
+from django.http import HttpRequest
 from django.urls import resolve
 
 from . import settings as app_settings
@@ -73,31 +74,32 @@ class Amplitude():
 
         return event
 
-    def page_view_event(self, request):
+    def build_event_data(
+        self, event_type: str, request: HttpRequest, **kwargs
+    ) -> dict:
         """
-        Send an event based on a Django request
+        Build event data using a Django request object
         """
         event: Dict[str, Any] = {
             'device_id': request.session.get('amplitude_device_id'),
-            'event_type': f'Page view',
+            'event_type': event_type,
             'time': int(round(time.time() * 1000)),
             'ip': get_client_ip(request),
             'language': getattr(request, 'LANGUAGE_CODE', ''),
-            # 'app_version': '',
-            # 'device_id': '',
-            # 'carrier': '',
-            # 'dma': 'San Francisco-Oakland-San Jose, CA',
-            # 'price': 4.99,
-            # 'quantity': 3,
-            # 'revenue': -1.99,
-            # 'productId': 'Google Pay Store Product Id',
-            # 'revenueType': 'Refund',
-            # 'idfa': '',
-            # 'idfv': '',
-            # 'adid': '',
-            # 'android_id': '',
-            # 'event_id': 23,
-            # 'insert_id': '',
+            'app_version': kwargs.get('app_version'),
+            'carrier': kwargs.get('carrier'),
+            'dma': kwargs.get('dma'),
+            'price': kwargs.get('price'),
+            'quantity': kwargs.get('quantity'),
+            'revenue': kwargs.get('revenue'),
+            'productId': kwargs.get('productId'),
+            'revenueType': kwargs.get('revenueType'),
+            'idfa': kwargs.get('idfa'),
+            'idfv': kwargs.get('idfv'),
+            'adid': kwargs.get('adid'),
+            'android_id': kwargs.get('android_id'),
+            'event_id': kwargs.get('event_id'),
+            'insert_id': kwargs.get('insert_id'),
         }
         try:
             event['user_id'] = f'{request.user.id:05}'
@@ -112,9 +114,9 @@ class Amplitude():
         event.update(device_data)
         location_data = self.location_data_from_ip_address(event['ip'])
         event.update(location_data)
-        self.send_events(events=[event])
+        return event
 
-    def event_properties_from_request(self, request) -> dict:
+    def event_properties_from_request(self, request: HttpRequest) -> dict:
         url_name = resolve(request.path_info).url_name
         event_properties = {
             'url': request.path,
@@ -126,7 +128,7 @@ class Amplitude():
             event_properties['kwargs'] = request.resolver_match.kwargs
         return event_properties
 
-    def user_properties_from_request(self, request) -> dict:
+    def user_properties_from_request(self, request: HttpRequest) -> dict:
         try:
             request.user.is_authenticated
         except AttributeError:
@@ -145,7 +147,7 @@ class Amplitude():
             'date_joined': request.user.date_joined.isoformat(),
         }
 
-    def group_from_request(self, request) -> list:
+    def group_from_request(self, request: HttpRequest) -> list:
         try:
             request.user.is_authenticated
         except AttributeError:
@@ -176,7 +178,7 @@ class Amplitude():
         location_data['location_lng'] = lat_lon[1]
         return location_data
 
-    def device_data_from_request(self, request) -> dict:
+    def device_data_from_request(self, request: HttpRequest) -> dict:
         device_data: dict = {}
 
         user_agent = get_user_agent(request)
