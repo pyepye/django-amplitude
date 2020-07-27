@@ -21,7 +21,6 @@ def test_send_page_view_event(mocker, client, freezer):
     events = [{
         'event_properties': {
             'method': 'GET',
-            'params': {},
             'url': url,
             'url_name': url_name
         },
@@ -81,7 +80,6 @@ def test_send_page_view_event_logged_in_user(
     events = [{
         'event_properties': {
             'method': 'GET',
-            'params': {},
             'url': url,
             'url_name': url_name
         },
@@ -186,7 +184,6 @@ def test_send_page_view_event_no_auth_middleware(
     events = [{
         'event_properties': {
             'method': 'GET',
-            'params': {},
             'url': url,
             'url_name': url_name
         },
