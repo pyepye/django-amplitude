@@ -123,6 +123,17 @@ class Amplitude():
             'url_name': url_name,
             'method': request.method,
             'params': dict(request.GET),
+            'scheme': request.scheme,
+            'content_type': request.content_type,
+            'content_params': request.content_params,
+            'content_length': request.META.get('CONTENT_LENGTH'),
+            'http_accept': request.META.get('HTTP_ACCEPT'),
+            'http_accept_encoding': request.META.get('HTTP_ACCEPT_ENCODING'),
+            'http_accept_language': request.META.get('HTTP_ACCEPT_LANGUAGE'),
+            'http_host': request.META.get('HTTP_HOST'),
+            'referer': request.META.get('HTTP_REFERER'),
+            'server_name': request.META.get('SERVER_NAME'),
+            'server_port': request.META.get('SERVER_PORT'),
         }
         if request.resolver_match:
             event_properties['kwargs'] = request.resolver_match.kwargs
