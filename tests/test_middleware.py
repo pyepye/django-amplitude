@@ -1,12 +1,11 @@
-
 from importlib import reload
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.urls import reverse
+from httpx import HTTPError
 
 from .fixtures import user  # NOQA: F401
-
 
 AMPLITUDE_URL = 'https://api.amplitude.com/2/httpapi'
 
@@ -212,3 +211,10 @@ def test_send_page_view_event_no_auth_middleware(
 
     client.get(url)
     request.assert_called_once_with(**kwargs)
+
+
+def test_send_page_view_event_httpx_error(mocker, client):
+    mock = mocker.Mock()
+    mock.raise_for_status.side_effect = HTTPError()
+    mocker.patch('amplitude.amplitude.httpx.request', return_value=mock)
+    client.get('')
