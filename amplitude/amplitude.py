@@ -161,15 +161,18 @@ class Amplitude():
         User = get_user_model()
         user = User.objects.get(pk=request.user.pk)
 
-        return {
+        user_data = {
             'username': user.get_username(),
             'email': user.email,
             'full_name': user.get_full_name(),
             'is_staff': user.is_staff,
             'is_superuser': user.is_superuser,
-            'last_login': user.last_login.isoformat(),
-            'date_joined': user.date_joined.isoformat(),
         }
+        if user.last_login:
+            user_data['last_login'] = user.last_login.isoformat()
+        if user.date_joined:
+            user_data['date_joined'] = user.date_joined.isoformat()
+        return user_data
 
     def group_from_request(self, request: HttpRequest) -> list:
         try:

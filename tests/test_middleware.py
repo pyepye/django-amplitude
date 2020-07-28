@@ -1,8 +1,12 @@
+
 from importlib import reload
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.urls import reverse
+
+from .fixtures import user  # NOQA: F401
+
 
 AMPLITUDE_URL = 'https://api.amplitude.com/2/httpapi'
 
@@ -22,7 +26,10 @@ def test_send_page_view_event(mocker, client, freezer):
         'event_properties': {
             'method': 'GET',
             'url': url,
-            'url_name': url_name
+            'url_name': url_name,
+            'scheme': 'http',
+            'server_name': 'testserver',
+            'server_port': '80',
         },
         'device_id': fakeuuid,
         'event_type': 'Page view',
@@ -55,33 +62,25 @@ def test_send_page_view_event(mocker, client, freezer):
 
 
 def test_send_page_view_event_logged_in_user(
-    mocker, client, freezer, django_user_model
+    mocker, client, freezer, user, django_user_model  # NOQA: F811
 ):
     freezer.move_to('2002-01-01T00:00:00')
 
     request = mocker.patch('amplitude.amplitude.httpx.request')
-    username = 'user'
-    email = 'test@example.com'
-    password = 'pass'
-    first_name = 'Test'
-    last_name = 'User'
-    django_user_model.objects.create_user(
-        username=username,
-        password=password,
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-    )
-    client.login(username=username, password=password)
+    usr = user()
+    client.force_login(usr)
 
     url_name = 'test_home'
     url = reverse(url_name)
-    user_id = django_user_model.objects.get(username=username).pk
+    user_id = django_user_model.objects.get(username=usr.username).pk
     events = [{
         'event_properties': {
             'method': 'GET',
             'url': url,
-            'url_name': url_name
+            'url_name': url_name,
+            'scheme': 'http',
+            'server_name': 'testserver',
+            'server_port': '80',
         },
         'device_id': mocker.ANY,
         'event_type': 'Page view',
@@ -93,12 +92,12 @@ def test_send_page_view_event_logged_in_user(
         'user_id': f'{user_id:05}',
         'user_properties': {
             'date_joined': '2002-01-01T00:00:00',
-            'email': email,
-            'full_name': f'{first_name} {last_name}',
+            'email': usr.email,
+            'full_name': f'{usr.first_name} {usr.last_name}',
             'is_staff': False,
             'is_superuser': False,
             'last_login': '2002-01-01T00:00:00',
-            'username': username
+            'username': usr.username
         },
     }]
 
@@ -141,7 +140,10 @@ def test_send_page_view_event_with_url_params(mocker, client, freezer):
             'method': 'GET',
             'params': params,
             'url': url,
-            'url_name': url_name
+            'url_name': url_name,
+            'scheme': 'http',
+            'server_name': 'testserver',
+            'server_port': '80',
         },
         'device_id': mocker.ANY,
         'event_type': 'Page view',
@@ -185,7 +187,10 @@ def test_send_page_view_event_no_auth_middleware(
         'event_properties': {
             'method': 'GET',
             'url': url,
-            'url_name': url_name
+            'url_name': url_name,
+            'scheme': 'http',
+            'server_name': 'testserver',
+            'server_port': '80',
         },
         'device_id': mocker.ANY,
         'event_type': 'Page view',
