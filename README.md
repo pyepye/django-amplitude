@@ -79,6 +79,15 @@ event_data = amplitude.build_event_data(
 amplitude.send_events([event_data])
 ```
 
+The above request will include URL and HTTP header info in the `event_properties`. If you want to override the event properties you can pass them through to `build_event_data`:
+
+```python
+event_data = amplitude.build_event_data(
+    event_type='User purchase',
+    request=request,
+    event_properties={'products': ['laptop', 'phone']}
+)
+```
 
 ### build_event_data missing event data keys
 
@@ -117,12 +126,12 @@ amplitude.send_events([event_data])
 If you are not happy with the data from `build_event_data` you can build you own event data based on the `UploadRequestBody` type in [Amplitude HTTP API (v2)](https://developers.amplitude.com/docs/http-api-v2). If you want to do this There are a few helper functions to build different parts of the event data from the Django request object:
 
 ```python
-amplitude.event_properties_from_request(request)
-amplitude.device_data_from_request(request)
-amplitude.user_properties_from_request(request)
-amplitude.group_from_request(request)
+amplitude.event_properties_from_request(request)  # Gets URL and HTTP header data
+amplitude.device_data_from_request(request)  # Gets device info from user agent
+amplitude.user_properties_from_request(request)  # Gets info from user model
+amplitude.group_from_request(request)  # Gets the list of groups a user is in
 
-amplitude.location_data_from_ip_address(ip_address)
+amplitude.location_data_from_ip_address(ip_address)  # Gets location data from IP if GeoIP2 is setup
 ```
 
 * `user_properties_from_request` will return an empty dict if `AMPLITUDE_INCLUDE_USER_DATA` is `False`

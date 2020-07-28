@@ -75,13 +75,17 @@ class Amplitude():
         return event
 
     def build_event_data(
-        self, event_type: str, request: HttpRequest, **kwargs
+        self, event_type: str,
+        request: HttpRequest,
+        event_properties: dict = {},
+        **kwargs
     ) -> dict:
         """
         Build event data using a Django request object
         """
         event: Dict[str, Any] = {
             'device_id': request.session.get('amplitude_device_id'),
+            'session_id': request.session.get('amplitude_session_id'),
             'event_type': event_type,
             'time': int(round(time.time() * 1000)),
             'ip': get_client_ip(request),
@@ -101,19 +105,25 @@ class Amplitude():
             'event_id': kwargs.get('event_id'),
             'insert_id': kwargs.get('insert_id'),
         }
+
+        if event_properties:
+            event['event_properties'] = event_properties
+        else:
+            event['event_properties'] = self.event_properties_from_request(request)  # NOQA: E501
+
         try:
             event['user_id'] = f'{request.user.pk:05}'
         except (AttributeError, TypeError):
             pass
-
-        event['session_id'] = request.session.get('amplitude_session_id')
-        event['event_properties'] = self.event_properties_from_request(request)
         event['user_properties'] = self.user_properties_from_request(request)
         event['groups'] = self.group_from_request(request)
+
         device_data = self.device_data_from_request(request)
         event.update(device_data)
+
         location_data = self.location_data_from_ip_address(event['ip'])
         event.update(location_data)
+
         return event
 
     def event_properties_from_request(self, request: HttpRequest) -> dict:
