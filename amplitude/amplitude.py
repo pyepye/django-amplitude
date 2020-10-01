@@ -68,7 +68,7 @@ class Amplitude():
     def clean_event(self, event: dict) -> dict:
         for key, value in event.items():
             if isinstance(value, dict):
-                event[key] = {k: v for k, v in value.items() if v not in [None, [], '', {}]}  # NOQA: E501race()
+                event[key] = {k: v for k, v in value.items() if v not in [None, [], '', {}]}  # NOQA: E501
 
         event = {k: v for k, v in event.items() if v not in [None, [], '', {}]}
 
