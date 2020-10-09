@@ -218,3 +218,35 @@ def test_send_page_view_event_httpx_error(mocker, client):
     mock.raise_for_status.side_effect = HTTPError()
     mocker.patch('amplitude.amplitude.httpx.request', return_value=mock)
     client.get('')
+
+
+def test_middleware_ignore_url(mocker, settings, client):
+    url_name = 'test_home'
+    url = reverse(url_name)
+    settings.AMPLITUDE_IGNORE_URLS = [url]
+    settings.AMPLITUDE_INCLUDE_USER_DATA = False
+    settings.AMPLITUDE_INCLUDE_GROUP_DATA = False
+    from amplitude import settings as appsettings
+    reload(appsettings)
+
+    build_event_data = mocker.patch(
+        'amplitude.middleware.amplitude.build_event_data'
+    )
+    client.get(url)
+    build_event_data.assert_not_called()
+
+
+def test_middleware_ignore_url_name(mocker, settings, client):
+    url_name = 'test_home'
+    settings.AMPLITUDE_IGNORE_URLS = [url_name]
+    settings.AMPLITUDE_INCLUDE_USER_DATA = False
+    settings.AMPLITUDE_INCLUDE_GROUP_DATA = False
+    from amplitude import settings as appsettings
+    reload(appsettings)
+
+    build_event_data = mocker.patch(
+        'amplitude.middleware.amplitude.build_event_data'
+    )
+    url = reverse(url_name)
+    client.get(url)
+    build_event_data.assert_not_called()

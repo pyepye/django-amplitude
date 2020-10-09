@@ -7,6 +7,10 @@ if not API_KEY:
 
 INCLUDE_USER_DATA = getattr(settings, 'AMPLITUDE_INCLUDE_USER_DATA', False)  # NOQA: E501
 INCLUDE_GROUP_DATA = getattr(settings, 'AMPLITUDE_INCLUDE_GROUP_DATA', False)  # NOQA: E501
+IGNORE_URLS = getattr(settings, 'AMPLITUDE_IGNORE_URLS', [])
+if not isinstance(IGNORE_URLS, list):
+    error = '"AMPLITUDE_IGNORE_URLS" must be a list of URLs or URL names'
+    raise ImproperlyConfigured(error)
 
 installed_apps = getattr(settings, 'INSTALLED_APPS')
 middleware = getattr(settings, 'MIDDLEWARE')

@@ -18,6 +18,10 @@ from .fixtures import user  # NOQA: F401
 amplitude = Amplitude()
 
 
+def fake_get_response(request):
+    return None
+
+
 def test_init_django_settings():
     amplitude = Amplitude()
     assert amplitude.api_key == settings.API_KEY
@@ -102,8 +106,7 @@ def test_build_event_data(freezer, rf):
         HTTP_REFERER=referrer,
     )
 
-    middleware = SessionMiddleware()
-    middleware.process_request(request)
+    SessionMiddleware(fake_get_response).process_request(request)
 
     request.LANGUAGE_CODE = laguage_code
     request.session['amplitude_device_id'] = amplitude_device_id
@@ -166,8 +169,7 @@ def test_build_event_data(freezer, rf):
 
 def test_build_event_data_with_kwargs(rf):
     request = rf.get('/')
-    middleware = SessionMiddleware()
-    middleware.process_request(request)
+    SessionMiddleware(fake_get_response).process_request(request)
     request.session.save()
 
     event_properties = {'test': 'test'}

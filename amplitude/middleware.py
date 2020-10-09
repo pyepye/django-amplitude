@@ -2,7 +2,9 @@ import logging
 from time import time
 from uuid import uuid4
 
-from . import Amplitude
+from django.urls import resolve
+
+from . import Amplitude, settings
 from .amplitude import AmplitudeException
 
 log = logging.getLogger(__name__)
@@ -26,6 +28,13 @@ class SendPageViewEvent(object):
         self.get_response = get_response
 
     def __call__(self, request):
+        # Ignore URLs can be either a url path or url name
+        if request.path_info in settings.IGNORE_URLS:
+            return self.get_response(request)
+        current_url = resolve(request.path_info)
+        if current_url.url_name in settings.IGNORE_URLS:
+            return self.get_response(request)
+
         event = amplitude.build_event_data(
             event_type='Page view', request=request
         )

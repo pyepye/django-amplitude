@@ -64,6 +64,12 @@ MIDDLEWARE = [
 ]
 ```
 
+While using `SendPageViewEvent` if there are certain URLs that you do not want to update Amplitude with you can use the `AMPLITUDE_IGNORE_URLS` setting. This setting take a list of relative urls or URL names. Relative URLS most match exactly so need to start with a forward slash (`/`)
+
+```python
+AMPLITUDE_IGNORE_URLS = ['my_url_name', '/testurl']
+```
+
 
 ### Sending events manually
 

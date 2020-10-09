@@ -11,9 +11,10 @@ ToDo: The pytest-django settings fixture appears to be module scope no function
 def test_missing_api_key(settings):
     settings.AMPLITUDE_API_KEY = None
 
-    with pytest.raises(ImproperlyConfigured):
+    with pytest.raises(ImproperlyConfigured) as error:
         from amplitude import settings as appsettings
         reload(appsettings)
+    error.match('"AMPLITUDE_API_KEY" is not set')
 
 
 def test_missing_sessions_app(settings):
@@ -56,3 +57,12 @@ def test_include_group_data_no_auth(settings):
     with pytest.raises(ImproperlyConfigured):
         from amplitude import settings as appsettings
         reload(appsettings)
+
+
+def test_ignore_urls(settings):
+    settings.AMPLITUDE_IGNORE_URLS = '123'
+
+    with pytest.raises(ImproperlyConfigured) as error:
+        from amplitude import settings as appsettings
+        reload(appsettings)
+    error.match('"AMPLITUDE_IGNORE_URLS" must be a list of URLs or URL names')
