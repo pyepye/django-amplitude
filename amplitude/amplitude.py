@@ -31,6 +31,7 @@ class Amplitude():
         api_key: str = None,
         include_user_data: bool = None,
         include_group_data: bool = None,
+        min_id_length: int = None,
     ):
         if not api_key:
             api_key = app_settings.API_KEY
@@ -38,11 +39,14 @@ class Amplitude():
             include_user_data = app_settings.INCLUDE_USER_DATA
         if include_group_data is None:
             include_group_data = app_settings.INCLUDE_GROUP_DATA
+        if not min_id_length:
+            min_id_length = app_settings.MIN_ID_LENGTH
 
         self.url = 'https://api.amplitude.com/2/httpapi'
         self.api_key = api_key
         self.include_user_data = include_user_data
         self.include_group_data = include_group_data
+        self.min_id_length = min_id_length
 
     def send_events(self, events: List[Dict[str, Any]]) -> dict:
         """
@@ -57,6 +61,10 @@ class Amplitude():
                 'api_key': self.api_key
             }
         }
+        if self.min_id_length is not None:
+            kwargs['json']['options'] = {
+                'min_id_length': self.min_id_length
+            }
         response = httpx.request(**kwargs)
         try:
             response.raise_for_status()
