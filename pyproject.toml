@@ -3,7 +3,7 @@ name = "django-amplitude"
 packages = [
     {include = "amplitude"}
 ]
-version = "0.6.0"
+version = "0.7.0"
 description = "Integration between Django and Amplitude"
 authors = ["Matt Pye <pyematt@gmail.com>"]
 readme = "README.md"
