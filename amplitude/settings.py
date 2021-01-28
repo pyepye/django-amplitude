@@ -12,6 +12,10 @@ if not isinstance(IGNORE_URLS, list):
     error = '"AMPLITUDE_IGNORE_URLS" must be a list of URLs or URL names'
     raise ImproperlyConfigured(error)
 
+MIN_ID_LENGTH = getattr(settings, 'AMPLITUDE_MIN_ID_LENGTH', None)
+if MIN_ID_LENGTH and not isinstance(MIN_ID_LENGTH, int):
+    raise ImproperlyConfigured('"AMPLITUDE_MIN_ID_LENGTH" must be an integer')
+
 installed_apps = getattr(settings, 'INSTALLED_APPS')
 middleware = getattr(settings, 'MIDDLEWARE')
 missing_session_settings = (

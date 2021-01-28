@@ -66,3 +66,12 @@ def test_ignore_urls(settings):
         from amplitude import settings as appsettings
         reload(appsettings)
     error.match('"AMPLITUDE_IGNORE_URLS" must be a list of URLs or URL names')
+
+
+def test_min_id_length(settings):
+    settings.AMPLITUDE_MIN_ID_LENGTH = 'test'
+
+    with pytest.raises(ImproperlyConfigured) as error:
+        from amplitude import settings as appsettings
+        reload(appsettings)
+    error.match('"AMPLITUDE_MIN_ID_LENGTH" must be an integer')

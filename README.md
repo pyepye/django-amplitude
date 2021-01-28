@@ -45,6 +45,10 @@ AMPLITUDE_INCLUDE_GROUP_DATA = False
 *Note: If you want to include user or group data you must ensure the [Django auth is setup correctly](https://docs.djangoproject.com/en/3.0/topics/auth/#installation). This includes adding `django.contrib.auth` and `django.contrib.contenttypes` to `INSTALLED_APPS` and `django.contrib.auth.middleware.AuthenticationMiddleware` to `MIDDLEWARE`*.
 
 
+For more information on the above settings see the [configuration settings](#configuration-settings) section.
+
+
+
 ## Usage
 
 ### Page view events
@@ -142,3 +146,29 @@ amplitude.location_data_from_ip_address(ip_address)  # Gets location data from I
 
 * `user_properties_from_request` will return an empty dict if `AMPLITUDE_INCLUDE_USER_DATA` is `False`
 * `group_from_request` will return an empty dict if `AMPLITUDE_INCLUDE_GROUP_DATA` is `False`
+
+
+#### Configuration settings
+
+Below are the different settings that can be overridden. To do so place the setting into your `settings.py`.
+
+```python
+# This variable is required when amplitude is added to INSTALLED_APPS
+AMPLITUDE_API_KEY = '<amplitude-project-api-key>'
+
+# If the users Django user information is included in the Amplitude event.
+# This includes - username, email, full_name, is_staff, is_superuser
+AMPLITUDE_INCLUDE_USER_DATA = False
+
+# If the groups the user is a member of is included in the Amplitude event.
+# A list of the group names will be sent in the request.
+AMPLITUDE_INCLUDE_GROUP_DATA = False
+
+# A list of URLs which `SendPageViewEvent` middleward should not run for.
+# Each item in the list can be either a URL or url name
+AMPLITUDE_IGNORE_URLS = ['home', '/please/ignore/']
+
+# The minimum permitted length for user_id & device_id fields
+# https://developers.amplitude.com/docs/http-api-v2#properties-2
+AMPLITUDE_MIN_ID_LENGTH = None
+```

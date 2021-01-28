@@ -27,18 +27,22 @@ def test_init_django_settings():
     assert amplitude.api_key == settings.API_KEY
     assert amplitude.include_user_data == settings.INCLUDE_USER_DATA
     assert amplitude.include_group_data == settings.INCLUDE_GROUP_DATA
+    assert amplitude.min_id_length == settings.MIN_ID_LENGTH
 
 
 def test_init_pass_args():
     api_key = 'test_init_fake'
+    text_min_id_length = 5
     amplitude = Amplitude(
         api_key=api_key,
         include_user_data=(not settings.INCLUDE_USER_DATA),
         include_group_data=(not settings.INCLUDE_GROUP_DATA),
+        min_id_length=text_min_id_length,
     )
     assert amplitude.api_key == api_key
     assert amplitude.include_user_data == (not settings.INCLUDE_USER_DATA)
     assert amplitude.include_group_data == (not settings.INCLUDE_GROUP_DATA)
+    assert amplitude.min_id_length == text_min_id_length
 
 
 def test_send_events(mocker):
@@ -61,6 +65,39 @@ def test_send_events(mocker):
         'json': {
             'events': events,
             'api_key': settings.API_KEY,
+        }
+    }
+    request.assert_called_once_with(**kwargs)
+
+
+def test_send_events_with_min_id_length(mocker, settings):
+    settings.AMPLITUDE_MIN_ID_LENGTH = 100
+    from amplitude import settings as appsettings
+    reload(appsettings)
+
+    amplitude = Amplitude()
+    mock = mocker.Mock()
+    mock.json.return_value = {
+        'code': 200,
+        'server_upload_time': 1111111111111,
+        'payload_size_bytes': 111,
+        'events_ingested': 1
+    }
+    request = mocker.patch(
+        'amplitude.amplitude.httpx.request', return_value=mock
+    )
+    events = [{'fake': {'fake': 'fake'}}]
+    response = amplitude.send_events(events)
+    assert isinstance(response, dict)
+    kwargs = {
+        'url': 'https://api.amplitude.com/2/httpapi',
+        'method': 'POST',
+        'json': {
+            'events': events,
+            'api_key': appsettings.API_KEY,
+            'options': {
+                'min_id_length': settings.AMPLITUDE_MIN_ID_LENGTH
+            }
         }
     }
     request.assert_called_once_with(**kwargs)
