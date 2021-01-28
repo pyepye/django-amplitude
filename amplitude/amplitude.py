@@ -209,7 +209,6 @@ class Amplitude():
         location = g.city(ip_address)
         location_data['country'] = location['country_name']
         location_data['city'] = location['city']
-        location_data['region'] = g.region(ip_address)
         lat_lon = g.lat_lon(ip_address)
         location_data['location_lat'] = lat_lon[0]
         location_data['location_lng'] = lat_lon[1]
