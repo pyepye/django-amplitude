@@ -164,7 +164,7 @@ AMPLITUDE_INCLUDE_USER_DATA = False
 # A list of the group names will be sent in the request.
 AMPLITUDE_INCLUDE_GROUP_DATA = False
 
-# A list of URLs which `SendPageViewEvent` middleward should not run for.
+# A list of URLs which `SendPageViewEvent` middleware should not run for.
 # Each item in the list can be either a URL or url name
 AMPLITUDE_IGNORE_URLS = ['home', '/please/ignore/']
 
