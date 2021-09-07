@@ -26,10 +26,10 @@ def test_get_client_ip_x_forwarded_for(client, settings):
         settings.MIDDLEWARE.remove('amplitude.middleware.SendPageViewEvent')
 
     request = HttpRequest()
-    correct_ip = '70.41.3.18'
-    request.META['HTTP_X_FORWARDED_FOR'] = f'203.0.113.195, {correct_ip}'
+    fake_client_ip = '70.41.3.18'
+    request.META['HTTP_X_FORWARDED_FOR'] = f'{fake_client_ip}, 203.0.113.195'
     ip = get_client_ip(request)
-    assert ip == correct_ip
+    assert ip == fake_client_ip
 
 
 def test_get_user_agent(client, settings):
