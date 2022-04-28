@@ -215,7 +215,7 @@ def test_send_page_view_event_no_auth_middleware(
 
 def test_send_page_view_event_httpx_error(mocker, client):
     mock = mocker.Mock()
-    mock.raise_for_status.side_effect = HTTPError()
+    mock.raise_for_status.side_effect = HTTPError('')
     mocker.patch('amplitude.amplitude.httpx.request', return_value=mock)
     client.get('')
 

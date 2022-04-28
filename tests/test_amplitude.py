@@ -105,7 +105,7 @@ def test_send_events_with_min_id_length(mocker, settings):
 
 def test_send_events_httpx_error(mocker):
     mock = mocker.Mock()
-    mock.raise_for_status.side_effect = HTTPError()
+    mock.raise_for_status.side_effect = HTTPError('')
     mocker.patch('amplitude.amplitude.httpx.request', return_value=mock)
 
     amplitude = Amplitude()
