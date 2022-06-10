@@ -120,7 +120,10 @@ class Amplitude():
             event['event_properties'] = self.event_properties_from_request(request)  # NOQA: E501
 
         try:
-            event['user_id'] = f'{request.user.pk:05}'
+            if self.min_id_length:
+                event['user_id'] = f'{request.user.pk:0{self.min_id_length}}'
+            else:
+                event['user_id'] = f'{request.user.pk:05}'
         except (AttributeError, TypeError):
             pass
         event['user_properties'] = self.user_properties_from_request(request)
