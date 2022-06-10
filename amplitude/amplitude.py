@@ -206,7 +206,11 @@ class Amplitude():
         # https://pypi.org/project/geoip2/
         # from django.contrib.gis.geoip2 import GeoIP2
         g = GeoIP2()
-        location = g.city(ip_address)
+        try:
+            location = g.city(ip_address)
+        except RuntimeError:
+            # Catch exceptions like `AddressNotFoundError`
+            return location_data
         location_data['country'] = location['country_name']
         location_data['city'] = location['city']
         lat_lon = g.lat_lon(ip_address)
