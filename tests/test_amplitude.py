@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import translation
 from httpx import HTTPError
 
-from amplitude import Amplitude, settings
+from amplitude import Amplitude, settings, amplitude as amplitude_module
 from amplitude.amplitude import AmplitudeException
 
 from .fixtures import user  # NOQA: F401
@@ -442,4 +442,14 @@ def test_device_data_no_meta(rf):
 
 def test_location_data_from_ip_address_no_meta(rf):
     location_data = amplitude.location_data_from_ip_address(ip_address='')
+    assert location_data == {}
+
+
+def test_location_data_with_error(mocker):
+    mock = mocker.Mock()
+    mock.return_value.city.side_effect = RuntimeError()
+    amplitude_module.GeoIP2 = mock
+    mocker.patch('amplitude.amplitude.CAN_GEOIP', True)
+    location_data = amplitude.location_data_from_ip_address(ip_address='127.0.0.1')
+    mock.return_value.city.assert_called_once()
     assert location_data == {}
