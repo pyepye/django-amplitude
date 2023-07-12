@@ -260,6 +260,25 @@ def test_build_event_data_with_kwargs(rf):
     assert event['insert_id'] == insert_id
 
 
+def test_build_event_data_with_min_id_length(rf, settings, user):
+    settings.AMPLITUDE_MIN_ID_LENGTH = 2
+    from amplitude import settings as appsettings
+    reload(appsettings)
+
+    amplitude = Amplitude()
+    request = rf.get('/')
+    request.user = user()
+    request.user.pk = 1
+    SessionMiddleware(fake_get_response).process_request(request)
+    request.session.save()
+
+    event = amplitude.build_event_data(
+        request=request,
+        event_type='event type',
+    )
+    assert event['user_id'] == '01'
+
+
 def test_clean_event():
     event = {
         '1': {
