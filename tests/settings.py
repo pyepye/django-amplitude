@@ -2,7 +2,6 @@ import os
 
 SECRET_KEY = 'amplitude-test'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-AUTH_USER_MODEL = "authentication.User"
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_HTTPONLY = True
