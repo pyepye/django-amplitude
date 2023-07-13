@@ -5,14 +5,14 @@ API_KEY = getattr(settings, 'AMPLITUDE_API_KEY')
 if not API_KEY:
     raise ImproperlyConfigured('"AMPLITUDE_API_KEY" is not set')
 
-INCLUDE_USER_DATA = getattr(settings, 'AMPLITUDE_INCLUDE_USER_DATA', False)  # NOQA: E501
-INCLUDE_GROUP_DATA = getattr(settings, 'AMPLITUDE_INCLUDE_GROUP_DATA', False)  # NOQA: E501
+INCLUDE_USER_DATA: bool = getattr(settings, 'AMPLITUDE_INCLUDE_USER_DATA', False)  # NOQA: E501
+INCLUDE_GROUP_DATA: bool = getattr(settings, 'AMPLITUDE_INCLUDE_GROUP_DATA', False)  # NOQA: E501
 IGNORE_URLS = getattr(settings, 'AMPLITUDE_IGNORE_URLS', [])
 if not isinstance(IGNORE_URLS, list):
     error = '"AMPLITUDE_IGNORE_URLS" must be a list of URLs or URL names'
     raise ImproperlyConfigured(error)
 
-MIN_ID_LENGTH = getattr(settings, 'AMPLITUDE_MIN_ID_LENGTH', None)
+MIN_ID_LENGTH: int | None = getattr(settings, 'AMPLITUDE_MIN_ID_LENGTH', None)
 if MIN_ID_LENGTH and not isinstance(MIN_ID_LENGTH, int):
     raise ImproperlyConfigured('"AMPLITUDE_MIN_ID_LENGTH" must be an integer')
 

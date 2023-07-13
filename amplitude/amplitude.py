@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import time
 from typing import Any, Dict, List
@@ -174,14 +176,24 @@ class Amplitude():
 
         user_data = {
             'username': user.get_username(),
-            'email': user.email,
-            'full_name': user.get_full_name(),
-            'is_staff': user.is_staff,
-            'is_superuser': user.is_superuser,
         }
-        if user.last_login:
+
+        if hasattr(user, 'email') and user.email:
+            user_data['email'] = user.email
+        if hasattr(user, 'full_name') and user.full_name:
+            get_full_name = getattr(user, "get_full_name")
+            if get_full_name and callable(get_full_name):
+                user_data['full_name'] = user.get_full_name()  # type: ignore
+            else:
+                user_data['full_name'] = user.full_name
+        if hasattr(user, 'is_staff') and user.is_staff:
+            user_data['is_staff'] = user.is_staff
+        if hasattr(user, 'is_superuser') and user.is_superuser:
+            user_data['is_superuser'] = user.is_superuser
+
+        if hasattr(user, 'last_login') and user.last_login:
             user_data['last_login'] = user.last_login.isoformat()
-        if user.date_joined:
+        if hasattr(user, 'date_joined') and user.date_joined:
             user_data['date_joined'] = user.date_joined.isoformat()
         return user_data
 
@@ -196,7 +208,10 @@ class Amplitude():
 
         User = get_user_model()
         user = User.objects.get(pk=request.user.pk)
-        groups = user.groups.all().values_list('name', flat=True)
+
+        groups = []
+        if hasattr(user, 'groups'):
+            groups = user.groups.all().values_list('name', flat=True)
         return list(groups)
 
     def location_data_from_ip_address(self, ip_address: str) -> dict:
