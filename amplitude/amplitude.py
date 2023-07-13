@@ -28,10 +28,10 @@ class Amplitude():
 
     def __init__(
         self,
-        api_key: str = None,
-        include_user_data: bool = None,
-        include_group_data: bool = None,
-        min_id_length: int = None,
+        api_key: str = '',
+        include_user_data: bool | None = None,
+        include_group_data: bool | None = None,
+        min_id_length: int | None = None,
     ):
         if not api_key:
             api_key = app_settings.API_KEY
