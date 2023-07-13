@@ -16,8 +16,8 @@ keywords = ["amplitude", "analytics", "product analytics", "saas"]
 [tool.poetry.dependencies]
 python = "^3.6"
 Django = ">=2.1"
-httpx = ">=0.13.2,<0.21.0"
-user-agents = "^2.1"
+httpx = ">=0.13.2"
+user-agents = ">=2.1"
 
 
 [tool.poetry.dev-dependencies]
