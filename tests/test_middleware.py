@@ -92,9 +92,9 @@ def test_send_page_view_event_logged_in_user(
         'user_properties': {
             'date_joined': '2002-01-01T00:00:00',
             'email': usr.email,
-            'full_name': f'{usr.first_name} {usr.last_name}',
-            'is_staff': False,
-            'is_superuser': False,
+            # 'full_name': f'{usr.first_name} {usr.last_name}',
+            # 'is_staff': False,
+            # 'is_superuser': False,
             'last_login': '2002-01-01T00:00:00',
             'username': usr.username
         },

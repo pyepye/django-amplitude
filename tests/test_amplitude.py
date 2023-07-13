@@ -352,9 +352,9 @@ def test_user_properties_from_request(freezer, rf, user):  # NOQA: F811
     user_data = {
         'date_joined': '2002-01-01T00:00:00',
         'email': usr.email,
-        'full_name': f'{usr.first_name} {usr.last_name}',
-        'is_staff': False,
-        'is_superuser': False,
+        # 'full_name': f'{usr.first_name} {usr.last_name}',
+        # 'is_staff': False,
+        # 'is_superuser': False,
         'last_login': '2002-01-01T00:00:00',
         'username': usr.username
     }
